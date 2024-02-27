@@ -38,12 +38,17 @@ func GetDBConnectionString() string {
 		dbHost = "localhost"
 	}
 
+	dbPort := os.Getenv("POSTGRES_PORT")
+	if dbPort == "" {
+		dbPort = "5432"
+	}
+
 	if len(missingEnvVars) > 0 {
 		log.Fatalf("The following required environment variables are not set: %s",
 			strings.Join(missingEnvVars, ", "))
 	}
 
-	return fmt.Sprintf("postgres://%s:%s@%s:5432/%s", dbUser, dbPassword, dbHost, dbName)
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s", dbUser, dbPassword, dbHost, dbPort, dbName)
 }
 
 func ConnectToDatabase(ctx context.Context, dbConnectionString string) (*pgxpool.Pool, error) {
