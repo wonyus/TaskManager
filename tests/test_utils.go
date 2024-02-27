@@ -6,12 +6,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/JyotinderSingh/task-queue/pkg/coordinator"
-	pb "github.com/JyotinderSingh/task-queue/pkg/grpcapi"
-	"github.com/JyotinderSingh/task-queue/pkg/scheduler"
-	"github.com/JyotinderSingh/task-queue/pkg/worker"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"github.com/wonyus/Taskmanager/pkg/coordinator"
+	pb "github.com/wonyus/Taskmanager/pkg/grpcapi"
+	"github.com/wonyus/Taskmanager/pkg/scheduler"
+	"github.com/wonyus/Taskmanager/pkg/worker"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
