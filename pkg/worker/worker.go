@@ -7,13 +7,16 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
 
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/google/uuid"
 	"github.com/wonyus/Taskmanager/pkg/common"
 	pb "github.com/wonyus/Taskmanager/pkg/grpcapi"
+	"github.com/wonyus/Taskmanager/pkg/mq"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -33,6 +36,7 @@ type WorkerServer struct {
 	grpcServer               *grpc.Server
 	coordinatorConnection    *grpc.ClientConn
 	coordinatorServiceClient pb.CoordinatorServiceClient
+	mqtt                     mqtt.Client
 	heartbeatInterval        time.Duration
 	taskQueue                chan *pb.TaskRequest
 	ReceivedTasks            map[string]*pb.TaskRequest
@@ -45,11 +49,13 @@ type WorkerServer struct {
 // NewServer creates and returns a new WorkerServer.
 func NewServer(port string, coordinator string) *WorkerServer {
 	ctx, cancel := context.WithCancel(context.Background())
+	mqttClient := mq.ConnectToMqttClient()
 	return &WorkerServer{
 		id:                 uuid.New().ID(),
 		serverPort:         port,
 		coordinatorAddress: coordinator,
 		heartbeatInterval:  common.DefaultHeartbeat,
+		mqtt:               mqttClient,
 		taskQueue:          make(chan *pb.TaskRequest, 100), // Buffered channel
 		ReceivedTasks:      make(map[string]*pb.TaskRequest),
 		ctx:                ctx,
@@ -242,6 +248,12 @@ func (w *WorkerServer) updateTaskStatus(task *pb.TaskRequest, status pb.TaskStat
 // processTask simulates task processing.
 func (w *WorkerServer) processTask(task *pb.TaskRequest) {
 	log.Printf("Processing task: %+v", task)
+	data := splitPipeDelimitedString(task.GetData())
+	w.mqtt.Publish(data[1], 0, false, data[2])
 	time.Sleep(taskProcessTime)
 	log.Printf("Completed task: %+v", task)
+}
+
+func splitPipeDelimitedString(s string) []string {
+	return strings.Split(s, "|")
 }
