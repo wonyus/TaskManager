@@ -1,7 +1,8 @@
+# docker compose -f ./docker-compose.yml up -d --scale worker=2
 linux-build:
 	docker compose -f ./docker-compose.yml build --no-cache
 linux-deploy:
-	docker compose -f ./docker-compose.yml up -d --scale worker=2
+	docker compose -f ./docker-compose.yml up -d
 
 window-build:
 	docker-compose -f ./docker-compose.yml build --no-cache
