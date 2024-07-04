@@ -51,7 +51,7 @@ pipeline {
 }
 
 def buildDockerImage(tag) {
-    sh "docker build -t ${DOCKER_IMAGE_NAME_COORDINATOR}:${tag} -t ${DOCKER_IMAGE_NAME_COORDINATOR}:latest ."
-    sh "docker build -t ${DOCKER_IMAGE_NAME_SCHEDULER}:${tag} -t ${DOCKER_IMAGE_NAME_SCHEDULER}:latest ."
-    sh "docker build -t ${DOCKER_IMAGE_NAME_WORKER}:${tag} -t ${DOCKER_IMAGE_NAME_WORKER}:latest ."
+    sh "docker build -t ${DOCKER_IMAGE_NAME_COORDINATOR}:${tag} -t ${DOCKER_IMAGE_NAME_COORDINATOR}:latest ./docker/coordinator-dockerfile"
+    sh "docker build -t ${DOCKER_IMAGE_NAME_SCHEDULER}:${tag} -t ${DOCKER_IMAGE_NAME_SCHEDULER}:latest ./docker/scheduler-dockerfile"
+    sh "docker build -t ${DOCKER_IMAGE_NAME_WORKER}:${tag} -t ${DOCKER_IMAGE_NAME_WORKER}:latest ./worker-dockerfile"
 }
