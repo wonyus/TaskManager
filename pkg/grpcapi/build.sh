@@ -3,6 +3,8 @@
 # Get the directory where the script resides
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
+ls -l $SCRIPT_DIR
+echo $SCRIPT_DIR
 # Define the full path to the api.proto file
 PROTO_FILE="$SCRIPT_DIR/api.proto"
 

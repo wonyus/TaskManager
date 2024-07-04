@@ -19,7 +19,9 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    buildDockerImage("${env.GIT_COMMIT}")
+                    buildDockerImageCoordinator("${env.GIT_COMMIT}")
+                    buildDockerImageScheduler("${env.GIT_COMMIT}")
+                    buildDockerImageWorker("${env.GIT_COMMIT}")
                 }
             }
         }
@@ -50,9 +52,14 @@ pipeline {
     }
 }
 
-def buildDockerImage(tag) {
-    sh 'ls -la'
+def buildDockerImageCoordinator(tag) {
     sh "docker build -t ${DOCKER_IMAGE_NAME_COORDINATOR}:${tag} -t ${DOCKER_IMAGE_NAME_COORDINATOR}:latest -f ${WORKSPACE}/00-coordinator-kube-dockerfile ."
+}
+
+def buildDockerImageScheduler(tag) {
     sh "docker build -t ${DOCKER_IMAGE_NAME_SCHEDULER}:${tag} -t ${DOCKER_IMAGE_NAME_SCHEDULER}:latest -f ${WORKSPACE}/00-scheduler-kube-dockerfile ."
+}
+
+def buildDockerImageWorker(tag) {
     sh "docker build -t ${DOCKER_IMAGE_NAME_WORKER}:${tag} -t ${DOCKER_IMAGE_NAME_WORKER}:latest -f ${WORKSPACE}/00-worker-kube-dockerfile ."
 }
