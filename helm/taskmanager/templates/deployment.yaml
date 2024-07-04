@@ -4,21 +4,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+  name: {{ include "taskmanager.fullname" (list $appName $root) }}
   namespace: {{ $appValues.namespace | default "default" }}
   labels:
-    app: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+    app: {{ include "taskmanager.fullname" (list $appName $root) }}
     {{- include "taskmanager.labels" $root | nindent 4 }}
 spec:
   replicas: {{ $appValues.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+      app: {{ include "taskmanager.fullname" (list $appName $root) }}
       {{- include "taskmanager.selectorLabels" $root | nindent 6 }}
   template:
     metadata:
       labels:
-        app: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+        app: {{ include "taskmanager.fullname" (list $appName $root) }}
         {{- include "taskmanager.selectorLabels" $root | nindent 8 }}
     spec:
       containers:
@@ -40,7 +40,7 @@ spec:
             - name: {{ $key | upper | replace "-" "_" }}
               valueFrom:
                 configMapKeyRef:
-                  name: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+                  name: {{ include "taskmanager.fullname" (list $appName $root) }}
                   key: {{ $key }}
             {{- end }}
       {{- with $appValues.nodeSelector }}

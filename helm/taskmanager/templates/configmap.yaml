@@ -5,10 +5,10 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+  name: {{ include "taskmanager.fullname" (list $appName $root) }}
   namespace: {{ $appValues.namespace | default "default" }}
   labels:
-    app: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+    app: {{ include "taskmanager.fullname" (list $appName $root) }}
 data:
   {{- range $key, $value := $appValues.config }}
   {{ $key }}: |-

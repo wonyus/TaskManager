@@ -12,8 +12,6 @@ apps:
       tag: "latest"
       args: ["--coordinator_port=:8080"]
 
-    nameOverride: ""
-    fullnameOverride: ""
     podAnnotations: {}
     service:
       type: ClusterIP
@@ -45,8 +43,6 @@ apps:
       tag: "latest"
       args: ["--scheduler_port=:8081"]
 
-    nameOverride: ""
-    fullnameOverride: ""
     podAnnotations: {}
     service:
       type: ClusterIP
@@ -70,8 +66,6 @@ apps:
       tag: "latest"
       args: ["--coordinator=taskmanager-coordinator:8080"]
 
-    nameOverride: ""
-    fullnameOverride: ""
     podAnnotations: {}
     service:
       type: ClusterIP
