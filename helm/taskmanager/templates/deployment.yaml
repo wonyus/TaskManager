@@ -1,0 +1,51 @@
+{{- $root := . -}}
+{{- range $appName, $appValues := .Values.apps }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+  namespace: {{ $appValues.namespace | default "default" }}
+  labels:
+    app: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+    {{- include "taskmanager.labels" $root | nindent 4 }}
+spec:
+  replicas: {{ $appValues.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+      {{- include "taskmanager.selectorLabels" $root | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+        {{- include "taskmanager.selectorLabels" $root | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ $appName }}
+          image: "{{ $appValues.image.repository }}:{{ $appValues.image.tag }}"
+          imagePullPolicy: {{ $appValues.image.pullPolicy }}
+          args:
+            {{- range $arg := $appValues.image.args }}
+            - {{ $arg }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ $appValues.service.port | default 80 }}
+              protocol: TCP
+          resources:
+            {{- toYaml $appValues.resources | nindent 12 }}
+          env:
+            {{- range $key, $value := $appValues.config }}
+            - name: {{ $key | upper | replace "-" "_" }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+                  key: {{ $key }}
+            {{- end }}
+      {{- with $appValues.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+{{- end }}

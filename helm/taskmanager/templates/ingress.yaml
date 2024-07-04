@@ -1,0 +1,45 @@
+{{- $root := . -}}
+{{- range $appName, $appValues := .Values.apps }}
+{{- if $appValues.ingress.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+  namespace: {{ $appValues.namespace | default "default" }}
+  labels:
+    app: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+  annotations:
+    {{- range $key, $value := $appValues.ingress.annotations }}
+      {{ $key }}: {{ $value | quote }}
+    {{- end }}
+spec:
+  ingressClassName: {{ $appValues.ingress.className | quote }}
+  rules:
+    {{- range $host := $appValues.ingress.hosts }}
+    - host: {{ $host.host | quote }}
+      http:
+        paths:
+          {{- range $path := $host.paths }}
+          - path: {{ $path.path }}
+            pathType: {{ $path.pathType }}
+            backend:
+              service:
+                name: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+                port:
+                  number: {{ $appValues.service.port }}
+          {{- end }}
+    {{- end }}
+  {{- if $appValues.ingress.tls }}
+  tls:
+    {{- range $tls := $appValues.ingress.tls }}
+    - hosts:
+      {{- range $host := $tls.hosts }}
+        - {{ $host | quote }}
+      {{- end }}
+      secretName: {{ $tls.secretName | quote }}
+    {{- end }}
+  {{- end }}
+---
+{{- end }}
+{{- end }}

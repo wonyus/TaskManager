@@ -1,0 +1,19 @@
+{{- $root := . -}}
+{{- range $appName, $appValues := .Values.apps }}
+{{- if $appValues.config }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+  namespace: {{ $appValues.namespace | default "default" }}
+  labels:
+    app: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+data:
+  {{- range $key, $value := $appValues.config }}
+  {{ $key }}: |-
+    {{ $value | nindent 4 }}
+  {{- end }}
+{{- end }}
+---
+{{- end }}
