@@ -1,11 +1,11 @@
 pipeline {
-    agent any
+    agent { label 'NODE_BATCH' }
 
     environment {
         DOCKER_IMAGE_NAME_COORDINATOR = 'wonyus/taskmanager-coordinator'
         DOCKER_IMAGE_NAME_SCHEDULER = 'wonyus/taskmanager-scheduler'
         DOCKER_IMAGE_NAME_WORKER = 'wonyus/taskmanager-worker'
-        DOCKER_REGISTRY_CREDENTIALS = 'docker-credential'
+        DOCKER_REGISTRY_CREDENTIALS = 'docker-hub-wonyus'
         DOCKER_REGISTRY_URL = 'https://registry.hub.docker.com'
     }
 
