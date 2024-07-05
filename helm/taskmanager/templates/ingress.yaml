@@ -5,10 +5,10 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "taskmanager.fullname" (list $appName $root) }}
-  namespace: {{ $appValues.namespace | default "default" }}
+  name: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+  namespace: {{ $appValues.namespace }}
   labels:
-    app: {{ include "taskmanager.fullname" (list $appName $root) }}
+    app: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
   annotations:
     {{- range $key, $value := $appValues.ingress.annotations }}
       {{ $key }}: {{ $value | quote }}
@@ -25,7 +25,7 @@ spec:
             pathType: {{ $path.pathType }}
             backend:
               service:
-                name: {{ include "taskmanager.fullname" (list $appName $root) }}
+                name: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
                 port:
                   number: {{ $appValues.service.port }}
           {{- end }}

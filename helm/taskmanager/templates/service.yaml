@@ -1,21 +1,20 @@
 {{- $root := . -}}
 {{- range $appName, $appValues := .Values.apps }}
 {{- if $appValues.service }}
----
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "taskmanager.fullname" (list $appName $root) }}
-  namespace: {{ $appValues.namespace | default "default" }}
+  name: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+  namespace: {{ $appValues.namespace }}
   labels:
-    app: {{ include "taskmanager.fullname" (list $appName $root) }}
+    app: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
 spec:
   type: {{ $appValues.service.type }}
   ports:
     - port: {{ $appValues.service.port }}
       targetPort: {{ $appValues.service.port }}
   selector:
-    app: {{ include "taskmanager.fullname" (list $appName $root) }}
+    app: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
     {{- end }}
 ---
 {{- end }}

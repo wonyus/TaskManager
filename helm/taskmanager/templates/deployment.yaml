@@ -1,26 +1,35 @@
 {{- $root := . -}}
 {{- range $appName, $appValues := .Values.apps }}
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "taskmanager.fullname" (list $appName $root) }}
-  namespace: {{ $appValues.namespace | default "default" }}
+  name: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
+  namespace: {{ $appValues.namespace }}
   labels:
-    app: {{ include "taskmanager.fullname" (list $appName $root) }}
+    app: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
     {{- include "taskmanager.labels" $root | nindent 4 }}
 spec:
   replicas: {{ $appValues.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "taskmanager.fullname" (list $appName $root) }}
+      app: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
       {{- include "taskmanager.selectorLabels" $root | nindent 6 }}
   template:
     metadata:
       labels:
-        app: {{ include "taskmanager.fullname" (list $appName $root) }}
+        app: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
         {{- include "taskmanager.selectorLabels" $root | nindent 8 }}
     spec:
+      serviceAccountName: {{ include "taskmanager.fullname" $root }}-{{ $appName }}-sa
+      {{- if $appValues.waitContainers }}
+      initContainers:
+        - name: {{ $appValues.waitContainers.name }}
+          image: "{{ $appValues.waitContainers.image }}"
+          args:
+            {{- range $arg := $appValues.waitContainers.args }}
+            - {{ $arg }}
+            {{- end }}
+      {{- end }}
       containers:
         - name: {{ $appName }}
           image: "{{ $appValues.image.repository }}:{{ $appValues.image.tag }}"
@@ -40,7 +49,7 @@ spec:
             - name: {{ $key | upper | replace "-" "_" }}
               valueFrom:
                 configMapKeyRef:
-                  name: {{ include "taskmanager.fullname" (list $appName $root) }}
+                  name: {{ include "taskmanager.fullname" $root }}-{{ $appName }}
                   key: {{ $key }}
             {{- end }}
       {{- with $appValues.nodeSelector }}

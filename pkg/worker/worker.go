@@ -15,6 +15,7 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/google/uuid"
 	"github.com/wonyus/Taskmanager/pkg/common"
+	"github.com/wonyus/Taskmanager/pkg/exec"
 	pb "github.com/wonyus/Taskmanager/pkg/grpcapi"
 	"github.com/wonyus/Taskmanager/pkg/mq"
 	"google.golang.org/grpc"
@@ -32,6 +33,7 @@ type WorkerServer struct {
 	id                       uint32
 	serverPort               string
 	coordinatorAddress       string
+	exec                     exec.Command
 	listener                 net.Listener
 	grpcServer               *grpc.Server
 	coordinatorConnection    *grpc.ClientConn
@@ -50,6 +52,7 @@ type WorkerServer struct {
 func NewServer(port string, coordinator string) *WorkerServer {
 	ctx, cancel := context.WithCancel(context.Background())
 	mqttClient := mq.ConnectToMqttClient()
+	exec := exec.NewCommand()
 	return &WorkerServer{
 		id:                 uuid.New().ID(),
 		serverPort:         port,
@@ -59,6 +62,7 @@ func NewServer(port string, coordinator string) *WorkerServer {
 		taskQueue:          make(chan *pb.TaskRequest, 100), // Buffered channel
 		ReceivedTasks:      make(map[string]*pb.TaskRequest),
 		ctx:                ctx,
+		exec:               exec,
 		cancel:             cancel,
 	}
 }
@@ -249,11 +253,36 @@ func (w *WorkerServer) updateTaskStatus(task *pb.TaskRequest, status pb.TaskStat
 func (w *WorkerServer) processTask(task *pb.TaskRequest) {
 	log.Printf("Processing task: %+v", task)
 	data := splitPipeDelimitedString(task.GetData())
-	w.mqtt.Publish(data[1], 0, false, data[2])
-	time.Sleep(taskProcessTime)
+
+	switch data[0] {
+	case "mqtt":
+		w.processMqttMessage(data)
+	case "exec":
+		re, err := w.processExecCommand(data)
+		if err != nil {
+			log.Printf("Error while executing command: %v", err)
+			return
+		}
+		log.Printf("Command output: %s", re)
+	default:
+		log.Printf("Unknown task type: %s", data[0])
+	}
+
 	log.Printf("Completed task: %+v", task)
 }
 
 func splitPipeDelimitedString(s string) []string {
 	return strings.Split(s, "|")
+}
+
+func (w *WorkerServer) processMqttMessage(data []string) {
+	w.mqtt.Publish(data[1], 0, false, data[2])
+}
+
+func (w *WorkerServer) processExecCommand(data []string) (string, error) {
+	re, err := w.exec.Run(data[1], data[2])
+	if err != nil {
+		return "", err
+	}
+	return re, nil
 }
